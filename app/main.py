@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -11,29 +13,30 @@ from app.api.routes import router
 
 logger = get_logger(__name__)
 
-app = FastAPI(title=settings.APP_NAME)
 
-# Start monitoring scheduler
-@app.on_event("startup")
-def start_monitoring():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     logger.info("Starting monitoring system...")
     start_scheduler()
+    yield
+    logger.info("Stopping monitoring system...")
 
-# Mount static files
+
+# IMPORTANT: app must be global
+app = FastAPI(
+    title=settings.APP_NAME,
+    lifespan=lifespan
+)
+
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-# Templates
 templates = Jinja2Templates(directory="app/templates")
 
-# Include API routes
 app.include_router(router)
 
 
 @app.get("/", response_class=HTMLResponse)
 def dashboard(request: Request):
-
-    logger.info("Dashboard opened")
-
     return templates.TemplateResponse(
         "dashboard.html",
         {
@@ -43,25 +46,18 @@ def dashboard(request: Request):
     )
 
 
-# WebSocket endpoint for real-time updates
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-
     await manager.connect(websocket)
-
     try:
         while True:
             await websocket.receive_text()
-
-    except:
+    except Exception:
         manager.disconnect(websocket)
 
 
 @app.get("/health")
 def health():
-
-    logger.info("Health check OK")
-
     return {
         "status": "ok",
         "service": settings.APP_NAME

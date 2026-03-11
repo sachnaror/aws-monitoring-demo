@@ -1,17 +1,40 @@
-from app.utils.logger import get_logger
-from app.aws_simulator.eventbridge import send_event
-
-logger = get_logger(__name__)
-
-LATENCY_THRESHOLD = 2
+from collections import deque
+from threading import Lock
 
 
-def publish_metric(service, latency, status):
+# store last 500 metrics
+metrics_store = deque(maxlen=500)
 
-    logger.info(f"CloudWatch metric received: {service} latency={latency}")
+metrics_lock = Lock()
 
-    if status == "FAIL":
-        send_event("SERVICE_FAILURE", service)
 
-    if latency > LATENCY_THRESHOLD:
-        send_event("HIGH_LATENCY", service)
+def publish_metric(metric: dict):
+    """
+    Simulates CloudWatch metric publishing
+    """
+
+    with metrics_lock:
+        metrics_store.append(metric)
+
+
+def get_metrics():
+    """
+    Returns all stored metrics
+    """
+
+    with metrics_lock:
+        return list(metrics_store)
+
+
+def get_latest_metrics():
+    """
+    Returns latest metric per service
+    """
+
+    latest = {}
+
+    with metrics_lock:
+        for metric in metrics_store:
+            latest[metric["service"]] = metric
+
+            return list(latest.values())

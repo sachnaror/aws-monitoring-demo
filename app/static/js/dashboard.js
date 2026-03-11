@@ -1,10 +1,12 @@
-let chart;
+let latencyChart;
 
+
+// Initialize chart
 function initChart() {
 
     const ctx = document.getElementById("latencyChart");
 
-    chart = new Chart(ctx, {
+    latencyChart = new Chart(ctx, {
 
         type: "line",
 
@@ -13,8 +15,8 @@ function initChart() {
             datasets: [{
                 label: "Latency (seconds)",
                 data: [],
-                borderColor: "blue",
-                backgroundColor: "rgba(0,123,255,0.1)",
+                borderColor: "#007bff",
+                backgroundColor: "rgba(0,123,255,0.15)",
                 tension: 0.3,
                 fill: true
             }]
@@ -35,54 +37,70 @@ function initChart() {
 }
 
 
-function updateChart(latency) {
+// Update chart
+function updateChart(metrics) {
 
-    const time = new Date().toLocaleTimeString();
+    if (!latencyChart) return;
 
-    chart.data.labels.push(time);
-    chart.data.datasets[0].data.push(latency);
+    const labels = [];
+    const latency = [];
 
-    if (chart.data.labels.length > 20) {
+    metrics.slice(-20).forEach(m => {
 
-        chart.data.labels.shift();
-        chart.data.datasets[0].data.shift();
+        const time = new Date(m.timestamp * 1000);
 
-    }
+        labels.push(
+            time.getHours() + ":" +
+            time.getMinutes() + ":" +
+            time.getSeconds()
+        );
 
-    chart.update();
+        latency.push(m.latency);
+
+    });
+
+    latencyChart.data.labels = labels;
+    latencyChart.data.datasets[0].data = latency;
+
+    latencyChart.update();
+
 }
 
 
-function loadMetrics(metrics) {
+// Update services table
+function updateServices(metrics) {
 
-    const table = document.querySelector("#servicesTable tbody");
+    const tableBody = document.querySelector("#servicesTable tbody");
 
-    table.innerHTML = "";
+    if (!tableBody) return;
 
-    metrics.forEach(item => {
+    tableBody.innerHTML = "";
+
+    metrics.forEach(service => {
 
         const row = document.createElement("tr");
 
-        const color = item.status === "OK" ? "green" : "red";
+        const statusColor = service.status === "OK" ? "green" : "red";
 
         row.innerHTML = `
-            <td>${item.service}</td>
-            <td style="color:${color};font-weight:bold">${item.status}</td>
-            <td>${item.latency}s</td>
+            <td>${service.service}</td>
+            <td style="color:${statusColor};font-weight:bold">${service.status}</td>
+            <td>${service.latency}s</td>
         `;
 
-        table.appendChild(row);
-
-        updateChart(item.latency);
+        tableBody.appendChild(row);
 
     });
 
 }
 
 
-function loadAlerts(alerts) {
+// Update alerts
+function updateAlerts(alerts) {
 
     const list = document.getElementById("alertsList");
+
+    if (!list) return;
 
     list.innerHTML = "";
 
@@ -90,7 +108,12 @@ function loadAlerts(alerts) {
 
         const item = document.createElement("li");
 
-        item.className = "list-group-item alert-item";
+        let color = "list-group-item-warning";
+
+        if (alert.severity === "critical")
+            color = "list-group-item-danger";
+
+        item.className = "list-group-item " + color;
 
         item.innerText = alert.message;
 
@@ -101,71 +124,107 @@ function loadAlerts(alerts) {
 }
 
 
+// Update overview cards
 function updateOverview(metrics, alerts) {
 
-    document.getElementById("serviceCount").innerText = metrics.length;
+    const serviceCount = document.getElementById("serviceCount");
+    const alertCount = document.getElementById("alertCount");
+    const avgLatency = document.getElementById("avgLatency");
 
-    document.getElementById("alertCount").innerText = alerts.length;
+    if (serviceCount)
+        serviceCount.innerText = metrics.length;
 
-    let total = 0;
+    if (alertCount)
+        alertCount.innerText = alerts.length;
 
-    metrics.forEach(m => total += m.latency);
+    let totalLatency = 0;
 
-    let avg = metrics.length ? (total / metrics.length).toFixed(2) : 0;
+    metrics.forEach(m => totalLatency += m.latency);
 
-    document.getElementById("avgLatency").innerText = avg + " s";
+    let avg = metrics.length ? (totalLatency / metrics.length).toFixed(2) : 0;
 
-}
-
-
-function connectWebSocket() {
-
-    const socket = new WebSocket("ws://localhost:8000/ws");
-
-    socket.onmessage = function (event) {
-
-        const data = JSON.parse(event.data);
-
-        if (data.latency) {
-
-            updateChart(data.latency);
-
-        }
-
-    };
-
-    socket.onerror = function () {
-        console.log("WebSocket connection error");
-    }
+    if (avgLatency)
+        avgLatency.innerText = avg + " s";
 
 }
 
 
+// Fetch metrics
+async function fetchMetrics() {
+
+    const response = await fetch("/metrics");
+
+    const data = await response.json();
+
+    return data.metrics || [];
+
+}
+
+
+// Fetch alerts
+async function fetchAlerts() {
+
+    const response = await fetch("/alerts");
+
+    const data = await response.json();
+
+    return data.alerts || [];
+
+}
+
+
+// Refresh dashboard
 async function refreshDashboard() {
 
     try {
 
-        const metricsResponse = await fetch("/metrics");
-        const metricsData = await metricsResponse.json();
+        const metrics = await fetchMetrics();
+        const alerts = await fetchAlerts();
 
-        const alertsResponse = await fetch("/alerts");
-        const alertsData = await alertsResponse.json();
-
-        loadMetrics(metricsData.metrics);
-        loadAlerts(alertsData.alerts);
-
-        updateOverview(metricsData.metrics, alertsData.alerts);
+        updateServices(metrics);
+        updateAlerts(alerts);
+        updateOverview(metrics, alerts);
+        updateChart(metrics);
 
     }
-    catch (error) {
+    catch (err) {
 
-        console.error("Dashboard refresh failed:", error);
+        console.error("Dashboard refresh error:", err);
 
     }
 
 }
 
 
+// Optional WebSocket support
+function connectWebSocket() {
+
+    try {
+
+        const socket = new WebSocket("ws://localhost:8000/ws");
+
+        socket.onmessage = function (event) {
+
+            const data = JSON.parse(event.data);
+
+            if (data.metrics) {
+
+                updateChart(data.metrics);
+
+            }
+
+        };
+
+    } catch (e) {
+
+        console.log("WebSocket not available, using polling.");
+
+    }
+
+}
+
+
+// Start dashboard
 function startDashboard() {
 
     initChart();

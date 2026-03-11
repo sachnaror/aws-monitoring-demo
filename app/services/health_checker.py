@@ -1,42 +1,70 @@
-import requests
+import random
 import time
+import itertools
+
 from app.utils.logger import get_logger
 from app.aws_simulator.cloudwatch import publish_metric
+from app.services.alerting import create_alert
 
 logger = get_logger(__name__)
 
 SERVICES = [
-    {"name": "auth-service", "url": "https://httpbin.org/status/200"},
-    {"name": "payment-service", "url": "https://httpbin.org/delay/1"},
-    {"name": "email-service", "url": "https://httpbin.org/status/200"},
+    "auth-service",
+    "payment-service",
+    "email-service",
+    "order-service",
+    "notification-service"
 ]
+
+service_cycle = itertools.cycle(SERVICES)
+
+
+def generate_latency():
+    return round(random.uniform(0.1, 2.5), 2)
+
+
+def generate_cpu():
+    return random.randint(10, 95)
+
+
+def generate_memory():
+    return random.randint(20, 90)
 
 
 def check_services():
 
-    results = []
+    service = next(service_cycle)
 
-    for service in SERVICES:
-        start = time.time()
+    latency = generate_latency()
+    cpu = generate_cpu()
+    memory = generate_memory()
 
-        try:
-            r = requests.get(service["url"], timeout=3)
-            latency = round(time.time() - start, 2)
+    status = "OK"
 
-            status = "OK" if r.status_code == 200 else "FAIL"
+    if random.random() < 0.05:
+        status = "DOWN"
 
-        except Exception:
-            latency = 0
-            status = "FAIL"
-
-        logger.info(f"{service['name']} | {status} | {latency}s")
-
-        publish_metric(service["name"], latency, status)
-
-        results.append({
-            "service": service["name"],
+        metric = {
+            "service": service,
+            "latency": latency,
+            "cpu": cpu,
+            "memory": memory,
             "status": status,
-            "latency": latency
-        })
+            "timestamp": time.time()
+        }
 
-    return results
+        publish_metric(metric)
+
+        logger.info(f"{service} latency={latency}s cpu={cpu}% mem={memory}%")
+
+        if latency > 1.5:
+            create_alert(service, f"{service} latency high ({latency}s)", "warning")
+
+            if cpu > 85:
+                create_alert(service, f"{service} CPU spike ({cpu}%)", "critical")
+
+                if memory > 80:
+                    create_alert(service, f"{service} memory usage high ({memory}%)", "warning")
+
+                    if status == "DOWN":
+                        create_alert(service, f"{service} service is DOWN", "critical")

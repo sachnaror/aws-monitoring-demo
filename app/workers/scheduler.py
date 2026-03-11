@@ -1,20 +1,38 @@
-from apscheduler.schedulers.background import BackgroundScheduler
+import threading
+import time
+
 from app.services.health_checker import check_services
 from app.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-scheduler = BackgroundScheduler()
+_scheduler_lock = threading.Lock()
+_scheduler_started = False
+
+
+def monitoring_loop():
+    logger.info("Monitoring scheduler running (3s interval)")
+
+    while True:
+        try:
+            check_services()
+        except Exception as e:
+            logger.error(f"Monitoring error: {e}")
+
+            time.sleep(3)
 
 
 def start_scheduler():
+    global _scheduler_started
 
-    logger.info("Starting monitoring scheduler")
+    with _scheduler_lock:
+        if _scheduler_started:
+            logger.info("Scheduler already running, skipping startup")
+            return
 
-    scheduler.add_job(
-        check_services,
-        "interval",
-        seconds=10
-    )
+        _scheduler_started = True
 
-    scheduler.start()
+        thread = threading.Thread(target=monitoring_loop, daemon=True)
+        thread.start()
+
+        logger.info(f"Scheduler thread started (id={thread.ident})")
