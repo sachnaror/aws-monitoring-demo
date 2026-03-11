@@ -1,0 +1,33 @@
+body {
+
+background-color: #f4f6f9;
+
+font-family: Arial, sans-serif;
+
+}
+
+h2 {
+
+font-weight: 600;
+
+}
+
+table {
+
+background: white;
+
+}
+
+.alert-item {
+
+color: #b30000;
+
+font-weight: 500;
+
+}
+
+table td {
+
+vertical-align: middle;
+
+}

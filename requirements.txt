@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+jinja2
+requests
+apscheduler
+boto3
+python-dotenv
+pydantic
+pydantic-settings

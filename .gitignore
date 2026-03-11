@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment
+.env
+.venv
+venv/
+
+# VSCode
+.vscode/
+
+# Mac
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Build
+dist/
+build/
+
+# Docker
+*.tar
+
+# pytest
+.pytest_cache/
+
+# coverage
+.coverage
+htmlcov/
+
+# mypy
+.mypy_cache/
+
+# node
+node_modules/
