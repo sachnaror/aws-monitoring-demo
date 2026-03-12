@@ -31,20 +31,17 @@ Think of it as a **mini CloudWatch + Datadog demo built in Python**.
 
 ## 🎬 Demo Video
 
-::: {align="center"}
-[![Watch the
-demo](https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
-:::
+<div align="center">
+<a href="https://youtu.be/WZ16FErIzr8">
+<img src="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg" alt="Watch the demo" width="600" height="600" />
+</a>
+</div>
 
-*(Replace with your own demo recording later)*
+
 
 ------------------------------------------------------------------------
 
-## 🖼 Dashboard Preview
 
-::: {align="center"}
-`<img src="https://dummyimage.com/600x600/0f172a/ffffff&text=Monitoring+Dashboard+Preview" width="600"/>`{=html}
-:::
 
 ------------------------------------------------------------------------
 
@@ -253,13 +250,20 @@ Ideas to extend this demo:
 ```
 ------------------------------------------------------------------------
 
-## 👨‍💻 Author
+## 📩 Contact
 
-Sachin Arora\
-Python Engineer • Product Engineering Manager
+| Name              | Details                             |
+|-------------------|-------------------------------------|
+| **👨‍💻 Developer**  | Sachin Arora                      |
+| **📧 Email**      | [sachnaror@gmail.com](mailto:sacinaror@gmail.com) |
+| **📍 Location**   | Noida, India                       |
+| **📂 GitHub**     | [github.com/sachnaror](https://github.com/sachnaror) |
+| **🌐 Youtube**    | [about.me/sachin-arora](https://www.youtube.com/@sachnaror4841/videos) |
+| **🌐 Blog**       | [about.me/sachin-arora](https://medium.com/@schnaror) |
+| **🌐 Website**    | [about.me/sachin-arora](https://about.me/sachin-arora) |
+| **🌐 Twitter**    | [about.me/sachin-arora](https://twitter.com/sachinhep) |
+| **📱 Phone**      | [+91 9560330483](tel:+919560330483) |
 
-GitHub\
-https://github.com/sachinarora
 
 ------------------------------------------------------------------------
 
