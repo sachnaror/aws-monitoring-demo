@@ -33,7 +33,7 @@ Think of it as a **mini CloudWatch + Datadog demo built in Python**.
 
 <div align="center">
 <a href="https://youtu.be/WZ16FErIzr8">
-<img src="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg" alt="Watch the demo" width="600" height="600" />
+<img src="" alt="Watch the demo" width="600" height="600" />
 </a>
 </div>
 
