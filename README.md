@@ -30,11 +30,12 @@ Think of it as a **mini CloudWatch + Datadog demo built in Python**.
 ------------------------------------------------------------------------
 
 ## 🎬 Demo Video
-```
-<div align="center">
-<iframe width="600" height="600" src="https://www.youtube.com/embed/WZ16FErIzr8" frameborder="0" allowfullscreen></iframe>
-</div>
-```
+
+▶️ Click to watch the demo video
+<a href="https://www.youtube.com/watch?v=WZ16FErIzr8">
+  <img src="https://img.youtube.com/vi/WZ16FErIzr8/maxresdefault.jpg" width="600">
+</a>
+
 
 
 ------------------------------------------------------------------------
